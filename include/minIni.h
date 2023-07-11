@@ -19,7 +19,11 @@
 #ifndef MININI_H
 #define MININI_H
 
-#include "minGlue.h"
+#ifdef MININI_NO_STDIO
+#include "minGlue-nx.h"
+#else
+#include "minGlue-stdio.h"
+#endif
 
 #if (defined _UNICODE || defined __UNICODE__ || defined UNICODE) && !defined INI_ANSIONLY
   #include <tchar.h>

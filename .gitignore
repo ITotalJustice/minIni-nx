@@ -6,3 +6,6 @@
 *.o
 *.a
 *.so
+
+lib
+release
