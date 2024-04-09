@@ -1,16 +1,26 @@
-#ifdef MININI_NO_STDIO
+#include "minGlue.h"
+
+#if MININI_USE_NX
 #include "minGlue-nx.h"
 #include <string.h>
 
+static void fix_nro_path(char* path, size_t len) {
+    // hbmenu prefixes paths with sdmc: which fsFsOpenFile won't like
+    if (!strncmp(path, "sdmc:/", 6)) {
+        memmove(path, path + 5, len-5);
+    }
+}
+
 static bool ini_open(const char* filename, struct NxFile* nxfile, u32 mode) {
-    Result rc = {0};
-    char filename_buf[FS_MAX_PATH] = {0};
+    Result rc;
+    char filename_buf[FS_MAX_PATH];
 
     if (R_FAILED(rc = fsOpenSdCardFileSystem(&nxfile->system))) {
         return false;
     }
 
     strcpy(filename_buf, filename);
+    fix_nro_path(filename_buf, sizeof(filename_buf));
 
     if (R_FAILED(rc = fsFsOpenFile(&nxfile->system, filename_buf, mode, &nxfile->file))) {
         if (mode & FsOpenMode_Write) {
@@ -33,26 +43,26 @@ static bool ini_open(const char* filename, struct NxFile* nxfile, u32 mode) {
     return true;
 }
 
-bool ini_openread(const char* filename, struct NxFile* nxfile) {
+bool ini_openread_nx(const char* filename, struct NxFile* nxfile) {
     return ini_open(filename, nxfile, FsOpenMode_Read);
 }
 
-bool ini_openwrite(const char* filename, struct NxFile* nxfile) {
+bool ini_openwrite_nx(const char* filename, struct NxFile* nxfile) {
     return ini_open(filename, nxfile, FsOpenMode_Write|FsOpenMode_Append);
 }
 
-bool ini_openrewrite(const char* filename, struct NxFile* nxfile) {
+bool ini_openrewrite_nx(const char* filename, struct NxFile* nxfile) {
     return ini_open(filename, nxfile, FsOpenMode_Read|FsOpenMode_Write|FsOpenMode_Append);
 }
 
-bool ini_close(struct NxFile* nxfile) {
+bool ini_close_nx(struct NxFile* nxfile) {
     fsFileClose(&nxfile->file);
     fsFsClose(&nxfile->system);
     return true;
 }
 
-bool ini_read(char* buffer, u64 size, struct NxFile* nxfile) {
-    u64 bytes_read = {0};
+bool ini_read_nx(char* buffer, u64 size, struct NxFile* nxfile) {
+    u64 bytes_read;
     if (R_FAILED(fsFileRead(&nxfile->file, nxfile->offset, buffer, size, FsReadOption_None, &bytes_read))) {
         return false;
     }
@@ -61,8 +71,7 @@ bool ini_read(char* buffer, u64 size, struct NxFile* nxfile) {
         return false;
     }
 
-    char *eol = {0};
-
+    char *eol;
     if ((eol = strchr(buffer, '\n')) == NULL) {
         eol = strchr(buffer, '\r');
     }
@@ -76,7 +85,7 @@ bool ini_read(char* buffer, u64 size, struct NxFile* nxfile) {
     return true;
 }
 
-bool ini_write(const char* buffer, struct NxFile* nxfile) {
+bool ini_write_nx(const char* buffer, struct NxFile* nxfile) {
     const size_t size = strlen(buffer);
     if (R_FAILED(fsFileWrite(&nxfile->file, nxfile->offset, buffer, size, FsWriteOption_None))) {
         return false;
@@ -85,21 +94,21 @@ bool ini_write(const char* buffer, struct NxFile* nxfile) {
     return true;
 }
 
-bool ini_tell(struct NxFile* nxfile, s64* pos) {
+bool ini_tell_nx(struct NxFile* nxfile, s64* pos) {
     *pos = nxfile->offset;
     return true;
 }
 
-bool ini_seek(struct NxFile* nxfile, s64* pos) {
+bool ini_seek_nx(struct NxFile* nxfile, s64* pos) {
     nxfile->offset = *pos;
     return true;
 }
 
-bool ini_rename(const char* src, const char* dst) {
-    Result rc = {0};
-    FsFileSystem fs = {0};
-    char src_buf[FS_MAX_PATH] = {0};
-    char dst_buf[FS_MAX_PATH] = {0};
+bool ini_rename_nx(const char* src, const char* dst) {
+    Result rc;
+    FsFileSystem fs;
+    char src_buf[FS_MAX_PATH];
+    char dst_buf[FS_MAX_PATH];
 
     if (R_FAILED(rc = fsOpenSdCardFileSystem(&fs))) {
         return false;
@@ -112,10 +121,10 @@ bool ini_rename(const char* src, const char* dst) {
     return R_SUCCEEDED(rc);
 }
 
-bool ini_remove(const char* filename) {
-    Result rc = {0};
-    FsFileSystem fs = {0};
-    char filename_buf[FS_MAX_PATH] = {0};
+bool ini_remove_nx(const char* filename) {
+    Result rc;
+    FsFileSystem fs;
+    char filename_buf[FS_MAX_PATH];
 
     if (R_FAILED(rc = fsOpenSdCardFileSystem(&fs))) {
         return false;
@@ -126,4 +135,5 @@ bool ini_remove(const char* filename) {
     fsFsClose(&fs);
     return R_SUCCEEDED(rc);
 }
-#endif // MININI_NO_STDIO
+
+#endif // MININI_USE_NX

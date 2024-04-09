@@ -32,7 +32,9 @@
 #define MININI_IMPLEMENTATION
 #include "minIni.h"
 #if defined NDEBUG
-  #define assert(e)
+  #if !defined assert
+    #define assert(e)
+  #endif
 #else
   #include <assert.h>
 #endif

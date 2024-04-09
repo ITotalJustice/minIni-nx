@@ -12,21 +12,16 @@ struct NxFile {
     s64 offset;
 };
 
-#define INI_FILETYPE struct NxFile
-#define INI_FILEPOS s64
-#define INI_OPENREWRITE
-#define INI_REMOVE
-
-bool ini_openread(const char* filename, struct NxFile* nxfile);
-bool ini_openwrite(const char* filename, struct NxFile* nxfile);
-bool ini_openrewrite(const char* filename, struct NxFile* nxfile);
-bool ini_close(struct NxFile* nxfile);
-bool ini_read(char* buffer, u64 size, struct NxFile* nxfile);
-bool ini_write(const char* buffer, struct NxFile* nxfile);
-bool ini_tell(struct NxFile* nxfile, s64* pos);
-bool ini_seek(struct NxFile* nxfile, s64* pos);
-bool ini_rename(const char* src, const char* dst);
-bool ini_remove(const char* filename);
+bool ini_openread_nx(const char* filename, struct NxFile* nxfile);
+bool ini_openwrite_nx(const char* filename, struct NxFile* nxfile);
+bool ini_openrewrite_nx(const char* filename, struct NxFile* nxfile);
+bool ini_close_nx(struct NxFile* nxfile);
+bool ini_read_nx(char* buffer, u64 size, struct NxFile* nxfile);
+bool ini_write_nx(const char* buffer, struct NxFile* nxfile);
+bool ini_tell_nx(struct NxFile* nxfile, s64* pos);
+bool ini_seek_nx(struct NxFile* nxfile, s64* pos);
+bool ini_rename_nx(const char* src, const char* dst);
+bool ini_remove_nx(const char* filename);
 
 #if defined __cplusplus
 } // extern "C" {
