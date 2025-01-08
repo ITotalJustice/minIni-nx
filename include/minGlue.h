@@ -21,6 +21,10 @@ extern "C" {
     #define MININI_USE_FLOAT 1
 #endif
 
+#if !defined(INI_BUFFERSIZE)
+    #define INI_BUFFERSIZE 0x301
+#endif
+
 #if MININI_USE_NX && MININI_USE_STDIO
 #include <switch.h>
 #include <stdio.h>
