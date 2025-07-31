@@ -63,6 +63,10 @@ typedef int (*INI_CALLBACK)(const mTCHAR *Section, const mTCHAR *Key, const mTCH
 int  ini_browse(INI_CALLBACK Callback, void *UserData, const mTCHAR *Filename);
 #endif /* INI_NOBROWSE */
 
+/* parses strings into values, useful when using ini_browse. */
+int ini_parse_getbool(const char* str, int def);
+long ini_parse_getl(const char* str, long def);
+
 #if defined __cplusplus
   }
 #endif

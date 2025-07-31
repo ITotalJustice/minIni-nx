@@ -151,7 +151,7 @@ static TCHAR *ini_strncpy(TCHAR *dest, const TCHAR *source, size_t maxlen, enum 
 
   assert(maxlen>0);
   assert(source != NULL && dest != NULL);
-  assert((dest < source || (dest == source && option != QUOTE_ENQUOTE)) || dest > source + strlen(source));
+  assert((dest < source || (dest == source && option != QUOTE_ENQUOTE)) || dest > source + _tcslen(source));
   if (option == QUOTE_ENQUOTE && maxlen < 3)
     option = QUOTE_NONE;  /* cannot store two quotes and a terminating zero in less than 3 characters */
 
@@ -344,10 +344,8 @@ int ini_gets(const TCHAR *Section, const TCHAR *Key, const TCHAR *DefValue,
 long ini_getl(const TCHAR *Section, const TCHAR *Key, long DefValue, const TCHAR *Filename)
 {
   TCHAR LocalBuffer[64];
-  int len = ini_gets(Section, Key, __T(""), LocalBuffer, sizearray(LocalBuffer), Filename);
-  return (len == 0) ? DefValue
-                    : ((len >= 2 && _totupper((int)LocalBuffer[1]) == 'X') ? _tcstol(LocalBuffer, NULL, 16)
-                                                                           : _tcstol(LocalBuffer, NULL, 10));
+  ini_gets(Section, Key, __T(""), LocalBuffer, sizearray(LocalBuffer), Filename);
+  return ini_parse_getl(LocalBuffer, DefValue);
 }
 
 #if defined INI_REAL
@@ -392,15 +390,7 @@ int ini_getbool(const TCHAR *Section, const TCHAR *Key, int DefValue, const TCHA
   int ret;
 
   ini_gets(Section, Key, __T(""), LocalBuffer, sizearray(LocalBuffer), Filename);
-  LocalBuffer[0] = (TCHAR)_totupper((int)LocalBuffer[0]);
-  if (LocalBuffer[0] == 'Y' || LocalBuffer[0] == '1' || LocalBuffer[0] == 'T')
-    ret = 1;
-  else if (LocalBuffer[0] == 'N' || LocalBuffer[0] == '0' || LocalBuffer[0] == 'F')
-    ret = 0;
-  else
-    ret = DefValue;
-
-  return(ret);
+  return ini_parse_getbool(LocalBuffer, DefValue);
 }
 
 /** ini_getsection()
@@ -952,3 +942,23 @@ int ini_putf(const TCHAR *Section, const TCHAR *Key, INI_REAL Value, const TCHAR
 }
 #endif /* INI_REAL */
 #endif /* !INI_READONLY */
+
+int ini_parse_getbool(const char* str, int def)
+{
+  const char c = _totupper(str[0]);
+
+  if (c == 'Y' || c == '1' || c == 'T')
+    return 1;
+  else if (c == 'N' || c == '0' || c == 'F')
+    return 0;
+  else
+    return def;
+}
+
+long ini_parse_getl(const char* str, long def)
+{
+  const size_t len = _tcslen(str);
+  return (len == 0) ? def
+                  : ((len >= 2 && _totupper((int)str[1]) == 'X') ? _tcstol(str, NULL, 16)
+                                                                          : _tcstol(str, NULL, 10));
+}
